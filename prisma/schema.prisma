@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Formulario {
+  id           Int            @id @unique @default(autoincrement())
+  nome         String         @db.VarChar(100)
+  descricao    String         @db.VarChar(1000)
+  link         String         @db.VarChar(1000)
+  Pergunta     Pergunta[]
+  Recomendacao Recomendacao[]
+  Relatorio    Relatorio[]
+}
+
+model Pergunta {
+  formulario Int
+  id         Int        @id @default(autoincrement())
+  pergunta   String     @db.VarChar(1000)
+  descricao  String     @db.VarChar(4000)
+  Formulario Formulario @relation(fields: [formulario], references: [id])
+  Resposta   Resposta[]
+
+  @@index([formulario], name: "Pergunta_fk0")
+}
+
+model Recomendacao {
+  id            Int             @id @default(autoincrement())
+  formulario    Int
+  descricao     String          @db.VarChar(4000)
+  requisitos    String          @db.VarChar(4000)
+  Formulario    Formulario      @relation(fields: [formulario], references: [id])
+  Recomendacoes Recomendacoes[]
+
+  @@index([formulario], name: "Recomendacao_fk0")
+}
+
+model Recomendacoes {
+  id           Int          @id @default(autoincrement())
+  recomendacao Int
+  relatorio    Int
+  Recomendacao Recomendacao @relation(fields: [recomendacao], references: [id])
+  Relatorio    Relatorio    @relation(fields: [relatorio], references: [id])
+
+  @@index([recomendacao], name: "Recomendacoes_fk0")
+  @@index([relatorio], name: "Recomendacoes_fk1")
+}
+
+model Relatorio {
+  id            Int             @id @default(autoincrement())
+  formulario    Int
+  usuario       Int
+  Formulario    Formulario      @relation(fields: [formulario], references: [id])
+  Usuario       Usuario         @relation(fields: [usuario], references: [id])
+  Recomendacoes Recomendacoes[]
+  Respostas     Respostas[]
+
+  @@index([formulario], name: "Relatorio_fk0")
+  @@index([usuario], name: "Relatorio_fk1")
+}
+
+model Resposta {
+  id        Int         @id @default(autoincrement())
+  pergunta  Int
+  resposta  String      @db.VarChar(4000)
+  Pergunta  Pergunta    @relation(fields: [pergunta], references: [id])
+  Respostas Respostas[]
+
+  @@index([pergunta], name: "Resposta_fk0")
+}
+
+model Respostas {
+  id        Int       @id @default(autoincrement())
+  relatorio Int
+  resposta  Int
+  Relatorio Relatorio @relation(fields: [relatorio], references: [id])
+  Resposta  Resposta  @relation(fields: [resposta], references: [id])
+
+  @@index([relatorio], name: "Respostas_fk0")
+  @@index([resposta], name: "Respostas_fk1")
+}
+
+model Usuario {
+  id        Int         @id @default(autoincrement())
+  nome      String      @db.VarChar(100)
+  email     String      @unique @db.VarChar(1000)
+  senha     String      @db.VarChar(1000)
+  adm       Boolean     @default(false)
+  Relatorio Relatorio[]
+}
